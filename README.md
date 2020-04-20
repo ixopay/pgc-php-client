@@ -71,3 +71,7 @@ if ($result->isSuccess()) {
         //finishCart();
     }
 }
+
+## License
+
+The MIT License (MIT). Please see [LICENSE](LICENSE) for more information.

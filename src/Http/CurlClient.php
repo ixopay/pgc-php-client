@@ -2,6 +2,7 @@
 
 namespace PaymentGateway\Client\Http;
 
+use PaymentGateway\Client\Client;
 use PaymentGateway\Client\Http\Exception\ClientException;
 
 /**
@@ -38,6 +39,16 @@ class CurlClient implements ClientInterface {
      * @var array
      */
     protected $additionalHeaders = array();
+
+    /**
+     * @var array
+     */
+    protected $customHeaders = array();
+
+    /**
+     * @var array
+     */
+    protected $customOptions = array();
 
     /**
      *
@@ -106,6 +117,24 @@ class CurlClient implements ClientInterface {
     }
 
     /**
+     * @param array $customHeaders
+     * @return $this
+     */
+    public function setCustomHeaders(array $customHeaders){
+        $this->customHeaders = $customHeaders;
+        return $this;
+    }
+
+    /**
+     * @param array $customOptions
+     * @return $this
+     */
+    public function setCustomCurlOptions(array $customOptions){
+        $this->customOptions = $customOptions;
+        return $this;
+    }
+
+    /**
      *
      */
     public function __destruct() {
@@ -131,8 +160,23 @@ class CurlClient implements ClientInterface {
             $allHeaders[] = $k . ': ' . $v;
         }
 
+        if($this->customHeaders){
+            foreach ($this->mergeHeaders($headers, $this->customHeaders) as $k => $v) {
+                $allHeaders[] = $k . ': ' . $v;
+            }
+        }
+        $allHeaders[] = 'X-SDK-Type: Gateway PHP Client';
+        $allHeaders[] = 'X-SDK-Version: '.Client::VERSION;
+        if (phpversion()) {
+            $allHeaders[] = 'X-SDK-PlatformVersion: ' . phpversion();
+        }
+
         if (!empty($allHeaders)) {
             $this->setOption(CURLOPT_HTTPHEADER, $allHeaders);
+        }
+
+        if($this->customOptions){
+            $this->setOptionArray($this->customOptions);
         }
 
         $exec = CurlExec::getInstance($this->handle)->exec();
